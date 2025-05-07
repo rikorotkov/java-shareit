@@ -4,11 +4,13 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
+
     private final Map<Long, User> users = new HashMap<>();
-    private long idCounter = 1;
+    private static final AtomicLong ID_GENERATOR = new AtomicLong(0L);
 
     @Override
     public List<User> findAll() {
@@ -29,8 +31,9 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User save(User user) {
+        long id = nextId();
         if (user.getId() == null) {
-            user.setId(idCounter++);
+            user.setId(id);
         }
         users.put(user.getId(), user);
         return user;
@@ -53,5 +56,9 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public boolean existById(long id) {
         return users.containsKey(id);
+    }
+
+    private long nextId() {
+        return ID_GENERATOR.getAndIncrement();
     }
 }

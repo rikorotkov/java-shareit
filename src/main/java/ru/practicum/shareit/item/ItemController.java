@@ -20,7 +20,6 @@ public class ItemController {
 
     private final ItemService itemService;
 
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ItemDto createItem(@RequestBody @Valid ItemCreateDto itemDto,

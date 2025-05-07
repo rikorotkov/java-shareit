@@ -17,6 +17,4 @@ public interface ItemRepository {
     Item update(Item item);
 
     boolean existById(long id);
-
-    List<Item> findByDescription(String desc);
 }

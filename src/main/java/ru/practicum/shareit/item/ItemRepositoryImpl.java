@@ -6,6 +6,7 @@ import ru.practicum.shareit.exception.ResourceNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Repository
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
 public class ItemRepositoryImpl implements ItemRepository {
 
     private final Map<Long, Item> items = new HashMap<>();
-    private long idCounter = 1;
+    private static final AtomicLong ID_GENERATOR = new AtomicLong(0L);
 
     @Override
     public List<Item> findAll() {
@@ -23,7 +24,7 @@ public class ItemRepositoryImpl implements ItemRepository {
     @Override
     public List<Item> findByUserId(long userId) {
         return items.values().stream()
-                .filter(item -> item.getOwner() == userId)
+                .filter(item -> Objects.equals(item.getOwner(), userId))
                 .collect(Collectors.toList());
     }
 
@@ -34,8 +35,9 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public Item save(Item item) {
+        long id = nextId();
         if (item.getId() == null) {
-            item.setId(idCounter++);
+            item.setId(id);
         }
         items.put(item.getId(), item);
         return item;
@@ -55,16 +57,7 @@ public class ItemRepositoryImpl implements ItemRepository {
         return items.containsKey(id);
     }
 
-    @Override
-    public List<Item> findByDescription(String desc) {
-        if (desc == null || desc.isEmpty()) {
-            return List.of();
-        }
-        String lowerCaseDesc = desc.toLowerCase();
-        return items.values().stream()
-                .filter(item -> (item.getName().toLowerCase().contains(lowerCaseDesc) ||
-                        item.getDescription().toLowerCase().contains(lowerCaseDesc)) &&
-                        item.getAvailable())
-                .collect(Collectors.toList());
+    private long nextId() {
+        return ID_GENERATOR.getAndIncrement();
     }
 }
