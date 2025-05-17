@@ -3,26 +3,22 @@ package ru.practicum.shareit.item.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import ru.practicum.shareit.user.model.User;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "items")
-public class Item {
+@Table(name = "comments")
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private String text;
 
-    private String description;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Item item;
 
-    private Boolean available;
-
-    private Long owner;
-
-    private Long request;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User user;
 }
