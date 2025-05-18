@@ -1,21 +1,11 @@
 package ru.practicum.shareit.user.dto;
 
+import org.mapstruct.Mapper;
 import ru.practicum.shareit.user.model.User;
 
-public class UserMapper {
-    public static UserDto toUserDto(User user) {
-        return new UserDto(
-                user.getId(),
-                user.getName(),
-                user.getEmail()
-        );
-    }
+@Mapper
+public interface UserMapper {
+    UpdateUserDto toUpdateUserDto(User user);
 
-    public static User toUser(UserDto userDto) {
-        return new User(
-                userDto.getId(),
-                userDto.getName(),
-                userDto.getEmail()
-        );
-    }
+    User toUser(UpdateUserDto updateUserDto);
 }

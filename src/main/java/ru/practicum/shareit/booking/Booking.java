@@ -3,6 +3,8 @@ package ru.practicum.shareit.booking;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 
@@ -18,13 +20,17 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "start_time")
     private LocalDateTime start;
 
+    @Column(name = "end_time")
     private LocalDateTime end;
 
-    private Long item;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Item item;
 
-    private Long booker;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User booker;
 
     @Enumerated(EnumType.STRING)
     private BookingStatus status = BookingStatus.WAITING;

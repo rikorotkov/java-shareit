@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,39 +23,42 @@ public class ItemService {
 
     private final ItemRepository itemRepository;
     private final UserService userService;
+    private final ItemMapper itemMapper;
 
+    @Transactional
     public ItemDto create(Long userId, ItemCreateDto itemDto) {
         userService.getById(userId);
-        Item item = ItemMapper.toItem(itemDto, userId);
+        Item item = itemMapper.toItem(itemDto, userId);
         log.info("Creating new item: {}", item);
-        return ItemMapper.toItemDto(itemRepository.save(item));
+        return itemMapper.toDto(itemRepository.save(item));
     }
 
+    @Transactional
     public ItemDto update(Long userId, Long itemId, ItemUpdateDto itemDto) {
         Item existingItem = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found id - " + itemId));
 
-        if (!existingItem.getOwner().equals(userId)) {
+        if (!existingItem.getOwner().getId().equals(userId)) {
             throw new UserIsNotOwnerException("User is not owner id - " + userId);
         }
 
-        ItemMapper.updateItem(existingItem, itemDto);
+        itemMapper.updateItem(itemDto, existingItem);
         log.info("Updating existing item: {}", existingItem);
-        return ItemMapper.toItemDto(itemRepository.update(existingItem));
+        return itemMapper.toDto(itemRepository.save(existingItem));
     }
 
     public ItemDto getById(Long itemId, Long userId) {
         userService.getById(userId);
         log.info("Getting item by id: {}", itemId);
         return itemRepository.findById(itemId)
-                .map(ItemMapper::toItemDto)
+                .map(itemMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found id - " + itemId));
     }
 
     public List<ItemDto> getAllByUser(Long userId) {
         log.info("Getting all items by user: {}", userId);
-        return itemRepository.findByUserId(userId).stream()
-                .map(ItemMapper::toItemDto)
+        return itemRepository.findByOwnerIdOrderById(userId).stream()
+                .map(itemMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -63,11 +67,8 @@ public class ItemService {
             return List.of();
         }
         log.info("Searching for items with text {}", text);
-        return itemRepository.findAll().stream()
-                .filter(Item::getAvailable)
-                .filter(item -> item.getName().toLowerCase().contains(text.toLowerCase()) ||
-                        item.getDescription().toLowerCase().contains(text.toLowerCase()))
-                .map(ItemMapper::toItemDto)
+        return itemRepository.searchAvailableItems(text.toLowerCase()).stream()
+                .map(itemMapper::toDto)
                 .collect(Collectors.toList());
     }
 

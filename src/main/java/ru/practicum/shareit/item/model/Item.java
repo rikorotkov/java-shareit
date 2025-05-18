@@ -3,6 +3,10 @@ package ru.practicum.shareit.item.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.user.model.User;
+
+import java.util.List;
 
 /**
  * TODO Sprint add-controllers.
@@ -22,7 +26,12 @@ public class Item {
 
     private Boolean available;
 
-    private Long owner;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User owner;
 
-    private Long request;
+    @OneToMany(mappedBy = "item")
+    private List<Booking> bookings;
+
+    @OneToMany(mappedBy = "item")
+    private List<Comment> comments;
 }

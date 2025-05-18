@@ -3,7 +3,10 @@ package ru.practicum.shareit.item.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import ru.practicum.shareit.user.model.User;
+
+import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor
@@ -20,5 +23,9 @@ public class Comment {
     private Item item;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private User user;
+    private User author;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime created;
 }
