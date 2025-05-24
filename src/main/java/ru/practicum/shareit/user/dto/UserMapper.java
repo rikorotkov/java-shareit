@@ -1,11 +1,14 @@
 package ru.practicum.shareit.user.dto;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 import ru.practicum.shareit.user.model.User;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface UserMapper {
-    UpdateUserDto toUpdateUserDto(User user);
+    UserDto toDto(User user);
 
-    User toUser(UpdateUserDto updateUserDto);
+    User toUser(UserDto userDto);
+
+    void updateUser(UpdateUserDto updateDto, @MappingTarget User user);
 }
