@@ -13,7 +13,7 @@ import java.util.List;
 @RequestMapping(path = "/users")
 @RequiredArgsConstructor
 public class UserController {
-    private final UserService userService;
+    private final UserServiceImpl userService;
 
     @GetMapping
     public List<UserDto> getAllUsers() {

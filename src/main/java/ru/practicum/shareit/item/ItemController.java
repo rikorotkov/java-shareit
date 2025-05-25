@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
@@ -18,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemController {
 
-    private final ItemService itemService;
+    private final ItemServiceImpl itemService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -48,5 +49,12 @@ public class ItemController {
     @GetMapping("/search")
     public List<ItemDto> searchItemByText(@RequestParam(name = "text") String text) {
         return itemService.searchItems(text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto postComment(@RequestBody CommentDto dto,
+                                  @RequestHeader("X-Sharer-User-Id") long userId,
+                                  @PathVariable long itemId) {
+        return itemService.createComment(dto, userId, itemId);
     }
 }
