@@ -23,13 +23,13 @@ public class ItemController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ItemDto createItem(@RequestBody @Valid ItemCreateDto itemDto,
+    public ItemDto createItem(@RequestBody @Valid ItemDto itemDto,
                               @RequestHeader("X-Sharer-User-Id") long userId) {
         return itemService.create(userId, itemDto);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto updateItem(@RequestBody ItemUpdateDto itemDto,
+    public ItemDto updateItem(@RequestBody ItemDto itemDto,
                               @RequestHeader("X-Sharer-User-Id") long userId,
                               @PathVariable long itemId) {
         return itemService.update(userId, itemId, itemDto);

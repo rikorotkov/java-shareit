@@ -33,15 +33,19 @@ public class ItemServiceImpl implements ItemService {
     private final ItemMapper itemMapper;
 
     @Transactional
-    public ItemDto create(Long userId, ItemCreateDto itemDto) {
-        userService.getById(userId);
-        Item item = itemMapper.toItem(itemDto, userId);
-        log.info("Creating new item: {}", item);
-        return itemMapper.toDto(itemRepository.save(item));
+    public ItemDto create(Long userId, ItemDto itemDto) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User not found");
+        }
+
+        itemDto.setOwnerId(userId);
+
+        Item saved = itemRepository.save(itemMapper.toItem(itemDto));
+        return itemMapper.toDto(saved);
     }
 
     @Transactional
-    public ItemDto update(Long userId, Long itemId, ItemUpdateDto itemDto) {
+    public ItemDto update(Long userId, Long itemId, ItemDto itemDto) {
         Item existingItem = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found id - " + itemId));
 
@@ -49,17 +53,22 @@ public class ItemServiceImpl implements ItemService {
             throw new UserIsNotOwnerException("User is not owner");
         }
 
-        itemMapper.updateItem(itemDto, existingItem);
         log.info("Updating existing item: {}", existingItem);
         return itemMapper.toDto(itemRepository.save(existingItem));
     }
 
     public ItemDto getById(Long itemId, Long userId) {
         userService.getById(userId);
-        log.info("Getting item by id: {}", itemId);
-        return itemRepository.findById(itemId)
-                .map(itemMapper::toDto)
+        Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found id - " + itemId));
+
+        ItemDto dto = itemMapper.toDto(item);
+        List<CommentDto> commentDtos = commentRepository.findByItemId(itemId).stream()
+                .map(itemMapper::toComment)
+                .collect(Collectors.toList());
+        dto.setComments(commentDtos);
+        log.info("Getting comments for item: {}", item);
+        return dto;
     }
 
     public List<ItemDto> getAllByUser(Long userId) {

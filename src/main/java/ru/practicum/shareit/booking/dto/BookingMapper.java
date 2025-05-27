@@ -1,11 +1,19 @@
 package ru.practicum.shareit.booking.dto;
 
-import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.Booking;
 
-@Mapper(componentModel = "spring")
-public interface BookingMapper {
-    BookingDto toBookingDto(Booking booking);
+@Component
+public class BookingMapper {
 
-    Booking toBooking(BookingCreateDto dto, Long bookerId, String itemName);
+    public static BookingDto toBookingDto(Booking booking) {
+        return new BookingDto(
+                booking.getId(),
+                booking.getStart(),
+                booking.getEnd(),
+                booking.getItem().getId(),
+                booking.getBooker().getId(),
+                booking.getStatus()
+        );
+    }
 }

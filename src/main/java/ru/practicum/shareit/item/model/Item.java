@@ -31,11 +31,20 @@ public class Item {
     private Boolean available;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
     private User owner;
 
     @OneToMany(mappedBy = "item")
+    @OrderBy("start")
     private List<Booking> bookings;
 
     @OneToMany(mappedBy = "item")
+    @OrderBy("created")
     private List<Comment> comments;
+
+    @Transient
+    private Booking lastBooking;
+
+    @Transient
+    private Booking nextBooking;
 }

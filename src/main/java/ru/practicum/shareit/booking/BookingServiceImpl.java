@@ -72,12 +72,12 @@ public class BookingServiceImpl implements BookingService {
             throw new ValidationException("User don't own item to approve booking");
         }
 
-        if (isApproved && booking.getStatus() == BookingStatus.APPROVED) {
+        if (isApproved && booking.getStatus() == Status.APPROVED) {
             throw new ValidationException("Booking is already approved");
-        } else if (!isApproved && booking.getStatus() == BookingStatus.REJECTED) {
+        } else if (!isApproved && booking.getStatus() == Status.REJECTED) {
             throw new ValidationException("Booking is already rejected");
         } else {
-            booking.setStatus(isApproved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
+            booking.setStatus(isApproved ? Status.APPROVED : Status.REJECTED);
         }
 
         Booking saved = bookingRepository.save(booking);
@@ -130,8 +130,8 @@ public class BookingServiceImpl implements BookingService {
             case PAST -> booking -> booking.getEnd().isBefore(current);
             case FUTURE -> booking -> booking.getStart().isAfter(current);
             case CURRENT -> booking -> booking.getStart().isBefore(current) && booking.getEnd().isAfter(current);
-            case WAITING -> booking -> booking.getStatus() == BookingStatus.WAITING;
-            case REJECTED -> booking -> booking.getStatus() == BookingStatus.REJECTED;
+            case WAITING -> booking -> booking.getStatus() == Status.WAITING;
+            case REJECTED -> booking -> booking.getStatus() == Status.REJECTED;
         };
     }
 
