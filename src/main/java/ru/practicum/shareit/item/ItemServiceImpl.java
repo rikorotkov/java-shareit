@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
 
     @Override
+    @Transactional
     public ItemDto create(Long userId, ItemCreateDto itemDto) {
         User owner = userService.getEntityById(userId);
         Item item = ItemMapper.toItem(itemDto, owner);
@@ -44,6 +46,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public ItemDto update(Long userId, Long itemId, ItemUpdateDto itemDto) {
         Item existingItem = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found id - " + itemId));
@@ -87,6 +90,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public CommentDto pastComment(CommentDto commentDto, Long userId, Long itemId) {
         log.info("Posting comment to item: {}", commentDto);
         User user = userRepository.findById(userId)
