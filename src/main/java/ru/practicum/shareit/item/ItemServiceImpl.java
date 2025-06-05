@@ -90,7 +90,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional
     public CommentDto pastComment(CommentDto commentDto, Long userId, Long itemId) {
         log.info("Posting comment to item: {}", commentDto);
         User user = userRepository.findById(userId)
