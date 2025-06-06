@@ -34,4 +34,18 @@ public class GlobalErrorHandler {
         log.warn("User is not owner: {}", e.getMessage());
         return ResponseEntity.status(status).body(Map.of("error", e.getMessage()));
     }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleValidationException(final ValidationException e) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        log.warn("Validation error: {}", e.getMessage());
+        return ResponseEntity.status(status).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleUnexpectedException(final Throwable e) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        log.error("Unexpected error: {}", e.getMessage(), e);
+        return ResponseEntity.status(status).body(Map.of("error", "Internal server error"));
+    }
 }
