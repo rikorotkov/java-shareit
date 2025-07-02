@@ -17,7 +17,6 @@ public class ItemMapper {
 
     public Item toItem(ItemCreateDto dto, Long ownerId) {
         Item item = new Item();
-        item.setId(dto.getId());
         item.setName(dto.getName());
         item.setDescription(dto.getDescription());
         item.setAvailable(dto.getAvailable());

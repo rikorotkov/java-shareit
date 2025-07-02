@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ItemCreateDto {
-    private Long id;
 
     @NotBlank(message = "Name must not be blank")
     private String name;

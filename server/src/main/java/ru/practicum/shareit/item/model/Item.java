@@ -36,6 +36,12 @@ public class Item {
     @JoinColumn(name = "owner_id")
     private User owner;
 
+    @Transient
+    private Booking lastBooking;
+
+    @Transient
+    private Booking nextBooking;
+
     @OneToMany(mappedBy = "item")
     @OrderBy("start")
 

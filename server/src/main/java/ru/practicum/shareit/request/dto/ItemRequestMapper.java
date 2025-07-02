@@ -51,7 +51,6 @@ public class ItemRequestMapper {
         if (item == null) return null;
 
         return ItemCreateDto.builder()
-                .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
