@@ -120,4 +120,79 @@ class BookingControllerIntegrationTest {
                 .andExpect(jsonPath("$.item.id", is(item.getId().intValue())))
                 .andExpect(jsonPath("$.booker.id", is(booker.getId().intValue())));
     }
+
+    @Test
+    void createBooking_whenItemNotAvailable_thenReturnBadRequest() throws Exception {
+        item.setAvailable(false);
+        item = itemRepository.save(item);
+
+        BookingDto bookingDto = BookingDto.builder()
+                .start(LocalDateTime.now().plusDays(1))
+                .end(LocalDateTime.now().plusDays(2))
+                .itemId(item.getId())
+                .build();
+
+        mockMvc.perform(post("/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", booker.getId())
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void findBookingById_whenNotOwnerOrBooker_thenForbidden() throws Exception {
+        User stranger = new User();
+        stranger.setName("Stranger");
+        stranger.setEmail("stranger@example.com");
+        stranger = userRepository.save(stranger);
+
+        Booking booking = new Booking();
+        booking.setStart(LocalDateTime.now().plusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(2));
+        booking.setItem(item);
+        booking.setBooker(booker);
+        booking.setStatus(Status.WAITING);
+        booking = bookingRepository.save(booking);
+
+        mockMvc.perform(get("/bookings/{bookingId}", booking.getId())
+                        .header("X-Sharer-User-Id", stranger.getId()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getBookings_shouldReturnBookingsForBooker() throws Exception {
+        Booking booking = new Booking();
+        booking.setStart(LocalDateTime.now().plusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(2));
+        booking.setItem(item);
+        booking.setBooker(booker);
+        booking.setStatus(Status.WAITING);
+        bookingRepository.save(booking);
+
+        mockMvc.perform(get("/bookings")
+                        .param("state", "ALL")
+                        .header("X-Sharer-User-Id", booker.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].booker.id").value(booker.getId()));
+    }
+
+    @Test
+    void getBookingsForOwner_shouldReturnBookings() throws Exception {
+        Booking booking = new Booking();
+        booking.setStart(LocalDateTime.now().plusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(2));
+        booking.setItem(item);
+        booking.setBooker(booker);
+        booking.setStatus(Status.WAITING);
+        bookingRepository.save(booking);
+
+        mockMvc.perform(get("/bookings/owner")
+                        .param("state", "ALL")
+                        .header("X-Sharer-User-Id", owner.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].item.id").value(item.getId()));
+    }
+
 }
