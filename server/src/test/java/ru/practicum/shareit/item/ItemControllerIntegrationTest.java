@@ -8,15 +8,18 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
+import java.time.LocalDateTime;
+
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -32,12 +35,17 @@ class ItemControllerIntegrationTest {
     private ItemRepository itemRepository;
 
     @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     private User user;
+    private Item item;
 
     @BeforeEach
     void setup() {
+        bookingRepository.deleteAll();
         itemRepository.deleteAll();
         userRepository.deleteAll();
 
@@ -45,6 +53,20 @@ class ItemControllerIntegrationTest {
         user.setName("Test User");
         user.setEmail("testuser@example.com");
         user = userRepository.save(user);
+
+        item = new Item();
+        item.setName("Test Item");
+        item.setDescription("Test Description");
+        item.setAvailable(true);
+        item.setOwner(user);
+        item = itemRepository.save(item);
+
+        Booking booking = new Booking();
+        booking.setItem(item);
+        booking.setBooker(user);
+        booking.setStart(LocalDateTime.now().minusDays(3));
+        booking.setEnd(LocalDateTime.now().minusDays(1));
+        bookingRepository.save(booking);
     }
 
     @Test
@@ -68,7 +90,6 @@ class ItemControllerIntegrationTest {
 
     @Test
     void updateItem_ShouldReturnUpdatedItem() throws Exception {
-        // Сначала создаем объект Item в БД
         Item item = new Item();
         item.setName("Old Name");
         item.setDescription("Old Description");
@@ -127,9 +148,10 @@ class ItemControllerIntegrationTest {
         mockMvc.perform(get("/items")
                         .header("X-Sharer-User-Id", user.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].name", anyOf(is("Item 1"), is("Item 2"))))
-                .andExpect(jsonPath("$[1].name", anyOf(is("Item 1"), is("Item 2"))));
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[?(@.name == 'Test Item')]").exists())
+                .andExpect(jsonPath("$[?(@.name == 'Item 1')]").exists())
+                .andExpect(jsonPath("$[?(@.name == 'Item 2')]").exists());
     }
 
     @Test
@@ -154,5 +176,59 @@ class ItemControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].name").value("Screwdriver"));
+    }
+
+    @Test
+    void createComment_ShouldReturnCreatedComment() throws Exception {
+
+        String commentJson = "{ \"text\": \"This is a test comment\" }";
+
+        mockMvc.perform(post("/items/" + item.getId() + "/comment")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", user.getId())
+                        .content(commentJson))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.text").value("This is a test comment"))
+                .andExpect(jsonPath("$.authorName").value(user.getName()))
+                .andExpect(jsonPath("$.created").exists());
+    }
+
+    @Test
+    void createComment_ShouldReturnNotFound_WhenUserNotFound() throws Exception {
+        String commentJson = "{ \"text\": \"Valid comment\" }";
+
+        mockMvc.perform(post("/items/" + item.getId() + "/comment")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 9999L)
+                        .content(commentJson))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void createComment_ShouldReturnNotFound_WhenItemNotFound() throws Exception {
+        String commentJson = "{ \"text\": \"Valid comment\" }";
+
+        mockMvc.perform(post("/items/" + 9999L + "/comment")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", user.getId())
+                        .content(commentJson))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void createComment_ShouldReturnBadRequest_WhenUserHasNoPastBooking() throws Exception {
+        User noBookingUser = new User();
+        noBookingUser.setName("No Booking");
+        noBookingUser.setEmail("nobooking@example.com");
+        noBookingUser = userRepository.save(noBookingUser);
+
+        String commentJson = "{ \"text\": \"Valid comment\" }";
+
+        mockMvc.perform(post("/items/" + item.getId() + "/comment")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", noBookingUser.getId())
+                        .content(commentJson))
+                .andExpect(status().isBadRequest());
     }
 }
