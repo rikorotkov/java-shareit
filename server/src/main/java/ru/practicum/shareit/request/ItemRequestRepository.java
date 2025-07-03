@@ -12,9 +12,9 @@ public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> 
     @Query("SELECT r FROM ItemRequest r LEFT JOIN FETCH r.items WHERE r.id = :id")
     Optional<ItemRequest> findByIdWithItems(@Param("id") Long id);
 
-    @Query("SELECT r FROM ItemRequest r LEFT JOIN FETCH r.items WHERE r.author.id = :userId")
+    @Query("SELECT r FROM ItemRequest r LEFT JOIN FETCH r.items WHERE r.author.id = :userId ORDER BY r.created DESC")
     List<ItemRequest> findAllByAuthorIdWithItems(@Param("userId") Long userId);
 
-    @Query("SELECT r FROM ItemRequest r LEFT JOIN FETCH r.items WHERE r.author.id <> :userId ORDER BY r.created")
+    @Query("SELECT r FROM ItemRequest r LEFT JOIN FETCH r.items WHERE r.author.id <> :userId ORDER BY r.created DESC")
     List<ItemRequest> findAllByAuthorIdNotOrderByCreatedWithItems(@Param("userId") Long userId);
 }
