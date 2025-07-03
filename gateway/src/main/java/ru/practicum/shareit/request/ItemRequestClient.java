@@ -13,6 +13,8 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.client.BaseClient;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
+import java.util.Map;
+
 @Slf4j
 @Service
 public class ItemRequestClient extends BaseClient {
@@ -44,8 +46,8 @@ public class ItemRequestClient extends BaseClient {
         return get("/" + requestId, userId);
     }
 
-    public ResponseEntity<Object> getRequestsByUserId(long userId) {
-        log.info("Get requests by id: {}", userId);
-        return get("", userId);
+    public ResponseEntity<Object> getRequestsByUserId(long userId, int from, int size) {
+        log.info("Get paged requests by userId={}, from={}, size={}", userId, from, size);
+        return get("/all?from={from}&size={size}", userId, Map.of("from", from, "size", size));
     }
 }

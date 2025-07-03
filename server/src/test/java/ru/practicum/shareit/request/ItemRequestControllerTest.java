@@ -95,15 +95,17 @@ class ItemRequestControllerTest {
 
     @Test
     void getRequestsByUserId_ReturnsList() throws Exception {
-        when(itemRequestService.getAllRequests(anyLong()))
+        when(itemRequestService.getAllRequests(anyLong(), anyInt(), anyInt()))
                 .thenReturn(List.of(sampleRequestDto));
 
         mockMvc.perform(get("/requests/all")
+                        .param("from", "0")
+                        .param("size", "10")
                         .header("X-Sharer-User-Id", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(sampleRequestDto.getId()));
 
-        verify(itemRequestService, times(1)).getAllRequests(eq(1L));
+        verify(itemRequestService, times(1)).getAllRequests(eq(1L), eq(0), eq(10));
     }
 
     @Test

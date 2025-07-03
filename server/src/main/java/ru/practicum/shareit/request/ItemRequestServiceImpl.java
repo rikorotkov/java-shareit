@@ -2,6 +2,8 @@ package ru.practicum.shareit.request;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ResourceNotFoundException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -59,13 +61,15 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
-    public List<ItemRequestDto> getAllRequests(long userId) {
-        log.info("Get all requests (not user's own)");
+    public List<ItemRequestDto> getAllRequests(long userId, int from, int size) {
+        log.info("Get all requests with pagination (not user's own)");
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("There is no user with id=" + userId);
         }
 
-        List<ItemRequest> otherRequests = requestRepository.findAllByAuthorIdNotOrderByCreatedWithItems(userId);
+        PageRequest pageRequest = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "created"));
+        List<ItemRequest> otherRequests = requestRepository.findByAuthorIdNot(userId, pageRequest);
+
         return otherRequests.stream()
                 .map(ItemRequestMapper::toDtoWithItems)
                 .toList();

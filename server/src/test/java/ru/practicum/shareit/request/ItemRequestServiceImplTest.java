@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.exception.ResourceNotFoundException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -133,11 +135,14 @@ class ItemRequestServiceImplTest {
     @Test
     void getAllRequests_whenUserExists_shouldReturnList() {
         long userId = 1L;
+        int from = 0;
+        int size = 10;
 
         when(userRepository.existsById(userId)).thenReturn(true);
-        when(requestRepository.findAllByAuthorIdNotOrderByCreatedWithItems(userId)).thenReturn(List.of(sampleEntity));
+        when(requestRepository.findByAuthorIdNot(userId, PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "created"))))
+                .thenReturn(List.of(sampleEntity));
 
-        List<ItemRequestDto> result = service.getAllRequests(userId);
+        List<ItemRequestDto> result = service.getAllRequests(userId, from, size);
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
@@ -147,9 +152,11 @@ class ItemRequestServiceImplTest {
     @Test
     void getAllRequests_whenUserNotFound_shouldThrowException() {
         long userId = 1L;
+        int from = 0;
+        int size = 10;
 
         when(userRepository.existsById(userId)).thenReturn(false);
 
-        assertThrows(ResourceNotFoundException.class, () -> service.getAllRequests(userId));
+        assertThrows(ResourceNotFoundException.class, () -> service.getAllRequests(userId, from, size));
     }
 }
